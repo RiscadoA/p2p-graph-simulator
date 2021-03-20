@@ -143,7 +143,7 @@ function animate(world, ctx) {
 
     ctx.clearRect(0, 0, world.width, world.height);
     world.draw(ctx);
-    setTimeout(function() { animate(world, ctx); }, 50);
+    setTimeout(function() { animate(world, ctx); }, 0);
 }
 
 document.addEventListener("DOMContentLoaded", function(event) {
