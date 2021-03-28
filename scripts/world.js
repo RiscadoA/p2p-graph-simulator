@@ -1,3 +1,5 @@
+const nodeScale = 0.4;
+
 class World {
     speed = 50.0;
 
@@ -63,8 +65,8 @@ class World {
 
             node.position[0] += node.force[0] * dt;
             node.position[1] += node.force[1] * dt;
-            node.position[0] = Math.min(Math.max(node.position[0], 32.0), window.innerWidth - 32.0);
-            node.position[1] = Math.min(Math.max(node.position[1], 32.0), window.innerHeight - 32.0);
+            node.position[0] = Math.min(Math.max(node.position[0], nodeScale * 64.0), window.innerWidth - nodeScale * 64.0);
+            node.position[1] = Math.min(Math.max(node.position[1], nodeScale * 64.0), window.innerHeight - nodeScale * 64.0);
             node.force[0] = 0.0;
             node.force[1] = 0.0;
 
@@ -187,7 +189,7 @@ class Connection {
         this.graphics.x = this.n1.position[0];
         this.graphics.y = this.n1.position[1];
         this.graphics.scale.x = dist;
-        this.graphics.scale.y = 5.0;
+        this.graphics.scale.y = nodeScale * 10.0;
     }
 
     destroy() {
@@ -213,8 +215,8 @@ class GenericNode {
         this.id = id;
         this.sprite = new PIXI.Sprite(nodeTex);
         this.sprite.anchor.set(0.5);
-        this.sprite.scale.x = 0.5;
-        this.sprite.scale.y = 0.5;
+        this.sprite.scale.x = nodeScale;
+        this.sprite.scale.y = nodeScale;
         this.sprite.interactive = true;
         this.sprite.buttonMode = true;
         this.sprite.node = this;
