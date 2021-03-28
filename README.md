@@ -1,6 +1,6 @@
 # P2P Graph Simulator
 
-P2P graph simulator that runs on the browser, written in JavaScript.
+P2P graph simulator that runs on the browser, written in JavaScript, using [PixiJS](https://www.pixijs.com/).
 
 ## Authors
 
