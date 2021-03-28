@@ -6,7 +6,7 @@ class World {
         this.nodes = new Map();
         this.connections = new Map();
         this.nextID = 0;    
-        this.addNode(-1);
+        this.addNode(-1, [ window.innerWidth / 2.0, window.innerHeight / 2.0 ]);
     }
     
     update(dt) {
@@ -56,6 +56,11 @@ class World {
         }
 
         for (const [id, node] of this.nodes.entries()) {
+            let offx = window.innerWidth / 2.0 - node.position[0];
+            let offy = window.innerHeight / 2.0 - node.position[1];
+            node.force[0] += offx / 200.0;
+            node.force[1] += offy / 200.0;
+
             node.position[0] += node.force[0] * dt;
             node.position[1] += node.force[1] * dt;
             node.position[0] = Math.min(Math.max(node.position[0], 32.0), window.innerWidth - 32.0);
@@ -71,7 +76,7 @@ class World {
         }
     }
 
-    addNode(target) {
+    addNode(target, position = undefined) {
         var node;
         if (this.mode == "ring") {
             node = new Node(this.nextID);
@@ -88,6 +93,11 @@ class World {
         else {
             node.position[0] = Math.random() * window.innerWidth;
             node.position[1] = Math.random() * window.innerHeight;
+        }
+
+        if (position != undefined) {
+            node.position[0] = position[0];
+            node.position[1] = position[1];
         }
     }
 
@@ -232,6 +242,21 @@ app.renderer.autoDensity = true;
 app.renderer.resize(window.innerWidth, window.innerHeight);
 app.renderer.backgroundColor = 0x333333;
 document.body.appendChild(app.view);
+
+// Init background
+
+let background = new PIXI.Container();
+background.hitArea = new PIXI.Rectangle(0, 0, window.innerWidth, window.innerHeight);
+background.interactive = true;
+background.on('pointerup', function (event) {
+    if (inputMode == "create") {
+        let pos = event.data.getLocalPosition(background);
+        world.addNode(-1, [pos.x, pos.y])
+    }
+})
+app.stage.addChild(background);
+
+// Add containers
 
 let connectionContainer = new PIXI.Container();
 let nodeContainer = new PIXI.Container();
