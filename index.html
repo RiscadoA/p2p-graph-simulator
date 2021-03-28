@@ -5,21 +5,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>P2P Graph Simulator - by RiscadoA</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" media="screen" href="main.css">
-    <script src="app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.9/pixi.min.js"></script>
+    <script src="scripts/ring.js"></script>
+    <style>* {padding: 0; margin: 0}</style>
 </head>
 <body>
-    <button type="button" id="initButton">Initialize</button>
-    <select id="modeSelect">
-        <option value="gossip">Gossip</option>
-        <option value="chord">Chord</option>
-    </select>
-    <br>
-    <canvas id="canvas" width="800" height="800" style="border:1px solid #000000;">
-    </canvas>
-    <br>
-    <button type="button" id="addNodeButton">Add Node</button> 
-    <button type="button" id="killNodeButton">Kill Node</button>
-    <input type="number" id="idInput"/>
+    <script src="scripts/app.js"></script>
 </body>
 </html>
