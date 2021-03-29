@@ -37,7 +37,8 @@ class World {
                     let dx = offx / dist;
                     let dy = offy / dist;
 
-                    if (this.getConnection(n1, n2) != undefined) {
+                    let con = this.getConnection(n1, n2)
+                    if (con != undefined && !con.temp) {
                         let s = dist - 100.0;
                         n1.force[0] -= dx * s * 0.02;
                         n1.force[1] -= dy * s * 0.02;
@@ -64,8 +65,8 @@ class World {
             node.force[0] += offx / 200.0;
             node.force[1] += offy / 200.0;
 
-            node.position[0] += node.force[0] * dt;
-            node.position[1] += node.force[1] * dt;
+            node.position[0] += node.force[0] * dt * 1000.0;
+            node.position[1] += node.force[1] * dt * 1000.0;
             node.position[0] = Math.min(Math.max(node.position[0], nodeScale * 64.0), window.innerWidth - nodeScale * 64.0);
             node.position[1] = Math.min(Math.max(node.position[1], nodeScale * 64.0), window.innerHeight - nodeScale * 64.0);
             node.force[0] = 0.0;
@@ -85,14 +86,16 @@ class World {
             node = new GenericNode(this.nextID);
         }
         else if (this.mode == "ring") {
-            node = new RingNode(this.nextID);
+            node = new RingNode(this.nextID, target);
         }
         this.nextID += 1;
         this.nodes.set(node.id, node);
 
         let targetN = this.getNode(target);
         if (targetN != undefined) {
-            this.addConnection(node, targetN);
+            if (this.mode == "free") {
+                this.addConnection(node, targetN, false);
+            }
             node.position[0] = targetN.position[0] + (Math.random() - 0.5) * 200.0;
             node.position[1] = targetN.position[1] + (Math.random() - 0.5) * 200.0;
         }
@@ -108,6 +111,10 @@ class World {
     }
 
     getConnection(n1, n2) {
+        if (n1 == undefined || n2 == undefined) {
+            return undefined;
+        }
+
         for (let i = 0; i < n1.connections.length; ++i) {
             let con = n1.connections[i];
             if (con.n1 == n2 || con.n2 == n2) {
@@ -118,12 +125,16 @@ class World {
         return undefined;
     }
     
-    addConnection(n1, n2) {
-        let con = new Connection(this.nextID, n1, n2);
+    addConnection(n1, n2, temp) {
+        if (n1 == undefined || n2 == undefined) {
+            return undefined;
+        }
+        let con = new Connection(this.nextID, n1, n2, temp);
         this.nextID += 1;
         this.connections.set(con.id, con);
         n1.connections.push(con);
         n2.connections.push(con);
+        return con;
     }
 
     killConnection(id) {
@@ -172,13 +183,20 @@ class Connection {
     id = -1;
     n1 = null;
     n2 = null;
+    temp = false;
 
-    constructor(id, n1, n2) {
+    constructor(id, n1, n2, temp) {
         this.id = id;
         this.n1 = n1;
         this.n2 = n2;
+        this.temp = temp;
         this.graphics = new PIXI.Graphics();
-        this.graphics.beginFill(0xFFFFFF);
+        if (this.temp) {
+            this.graphics.beginFill(0x888888);
+        }
+        else {
+            this.graphics.beginFill(0xFFFFFF);
+        }
         this.graphics.drawRect(0, -0.5, 1, 1);
         this.graphics.hitArea = new PIXI.Rectangle(0, -0.5, 1, 1);
         this.graphics.interactive = true;
@@ -186,9 +204,20 @@ class Connection {
         this.graphics.connection = this;
         this.graphics.on('pointerup', function() { world.connectionClicked(this.connection.id); })
         connectionContainer.addChild(this.graphics);
+
+        this.queue = [];
+        this.time = 0.0;
     }
 
-    update() {
+    promote() {
+        if (this.temp) {
+            this.temp = false;
+            this.graphics.beginFill(0xFFFFFF);
+            this.graphics.drawRect(0, -0.5, 1, 1);
+        }
+    }
+
+    update(dt) {
         let offx = this.n2.position[0] - this.n1.position[0];
         let offy = this.n2.position[1] - this.n1.position[1];
         let sqr_dist = offx * offx + offy * offy;
@@ -199,6 +228,24 @@ class Connection {
         this.graphics.y = this.n1.position[1];
         this.graphics.scale.x = dist;
         this.graphics.scale.y = nodeScale * 10.0;
+
+        this.time += Math.random() * dt;
+
+        // Pump messages
+        if (this.time > 1.0) {
+            this.time = 0.0;
+
+            if (this.queue.length > 0) {
+                let [node, msg] = this.queue.shift();
+                if (this.n1 == node) {
+                    this.n2.pushMessage(msg);
+                }
+                else if (this.n2 == node) {
+                    this.queue.push([msg]);
+                    this.n1.pushMessage(msg);
+                }
+            }
+        }    
     }
 
     destroy() {
@@ -211,6 +258,10 @@ class Connection {
             this.n2.connections.splice(index, 1);
         }
         connectionContainer.removeChild(this.graphics);
+    }
+
+    send(node, msg) {
+        this.queue.push([node, msg]);
     }
 }
 
@@ -232,11 +283,25 @@ class GenericNode {
         this.sprite.tint = Math.random() * 0xFFFFFF;
         this.sprite.on('pointerup', function() { world.nodeClicked(this.node.id); })
         nodeContainer.addChild(this.sprite);
+
+        this.queue = [];
+    }
+
+    pushMessage(msg) {
+        this.queue.push(msg);
+    }
+    
+    process(msg) {
+        // Overriden by child classes
     }
 
     update(dt) {
         this.sprite.x = this.position[0];
         this.sprite.y = this.position[1];
+
+        while (this.queue.length > 0) {
+            this.process(this.queue.shift());
+        }
     }
 
     destroy() {

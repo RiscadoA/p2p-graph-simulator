@@ -102,7 +102,7 @@ ringBut
 
 let inputMode = "none";
 let world = new World("free");
-app.ticker.add(delta => world.update(delta));
+app.ticker.add(delta => world.update(delta * 0.001));
 updateButtonTex();
 
 function updateButtonTex() {
