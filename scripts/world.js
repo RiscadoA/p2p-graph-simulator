@@ -157,6 +157,14 @@ class World {
             this.killConnection(id);
         }
     }
+
+    destroy() {
+        let it = this.nodes.entries().next();
+        while (!it.done) {
+            this.killNode(it.value[0]);
+            it = this.nodes.entries().next();
+        }
+    }
 }
 
 class Connection {
