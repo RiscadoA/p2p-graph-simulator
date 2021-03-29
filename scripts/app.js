@@ -36,8 +36,8 @@ let createButOnTex = PIXI.Texture.from('assets/create_button_on.png');
 let createButOffTex = PIXI.Texture.from('assets/create_button_off.png');
 let deleteButOnTex = PIXI.Texture.from('assets/delete_button_on.png');
 let deleteButOffTex = PIXI.Texture.from('assets/delete_button_off.png');
-let freeButOnTex = PIXI.Texture.from('assets/free_on.png');
-let freeButOffTex = PIXI.Texture.from('assets/free_off.png');
+let simpleButOnTex = PIXI.Texture.from('assets/simple_on.png');
+let simpleButOffTex = PIXI.Texture.from('assets/simple_off.png');
 let ringButOnTex = PIXI.Texture.from('assets/ring_on.png');
 let ringButOffTex = PIXI.Texture.from('assets/ring_off.png');
 let nodeTex = PIXI.Texture.from('assets/node.png');
@@ -70,16 +70,16 @@ deleteBut
     .on('pointerover', butPointerOver)
     .on('pointerout', butPointerOut);
 
-let freeBut = new PIXI.Sprite(freeButOffTex);
-freeBut.scale.x = 0.25;
-freeBut.scale.y = 0.25;
-freeBut.x = 88;
-freeBut.y = 8;
-freeBut.interactive = true;
-freeBut.buttonMode = true;
-freeBut.data = { reset: true, mode: "free" };
-app.stage.addChild(freeBut);
-freeBut
+let simpleBut = new PIXI.Sprite(simpleButOffTex);
+simpleBut.scale.x = 0.25;
+simpleBut.scale.y = 0.25;
+simpleBut.x = 88;
+simpleBut.y = 8;
+simpleBut.interactive = true;
+simpleBut.buttonMode = true;
+simpleBut.data = { reset: true, mode: "simple" };
+app.stage.addChild(simpleBut);
+simpleBut
     .on('pointerup', butPointerUp)
     .on('pointerover', butPointerOver)
     .on('pointerout', butPointerOut);
@@ -87,7 +87,7 @@ freeBut
 let ringBut = new PIXI.Sprite(ringButOffTex);
 ringBut.scale.x = 0.25;
 ringBut.scale.y = 0.25;
-ringBut.x = 88 + 68;
+ringBut.x = 162;
 ringBut.y = 8;
 ringBut.interactive = true;
 ringBut.buttonMode = true;
@@ -101,7 +101,7 @@ ringBut
 // Start app
 
 let inputMode = "none";
-let world = new World("free");
+let world = new World("simple");
 app.ticker.add(delta => world.update(delta * 0.001));
 updateButtonTex();
 
@@ -120,11 +120,11 @@ function updateButtonTex() {
         deleteBut.texture = deleteButOffTex;
     }
 
-    if (world.mode == "free" || freeBut.hovered) {
-        freeBut.texture = freeButOnTex;
+    if (world.mode == "simple" || simpleBut.hovered) {
+        simpleBut.texture = simpleButOnTex;
     }
     else {
-        freeBut.texture = freeButOffTex;
+        simpleBut.texture = simpleButOffTex;
     }
 
     if (world.mode == "ring" || ringBut.hovered) {

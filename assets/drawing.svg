@@ -42,17 +42,18 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="253.81644"
-     inkscape:cy="252.31246"
+     inkscape:cx="262.69948"
+     inkscape:cy="318.76539"
      inkscape:document-units="mm"
-     inkscape:current-layer="g2926-5-3"
+     inkscape:current-layer="g147-4-9"
      inkscape:document-rotation="0"
      showgrid="true"
      inkscape:window-width="1916"
      inkscape:window-height="1051"
      inkscape:window-x="0"
      inkscape:window-y="25"
-     inkscape:window-maximized="0">
+     inkscape:window-maximized="0"
+     showguides="false">
     <inkscape:grid
        type="xygrid"
        id="grid2853" />
@@ -131,11 +132,13 @@
        inkscape:export-ydpi="96">
       <g
          id="g147"
-         transform="translate(1.3839803,-0.39695291)">
+         transform="translate(1.3839803,-0.39695291)"
+         inkscape:export-xdpi="95.99984"
+         inkscape:export-ydpi="95.99984">
         <rect
            style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:1.85208;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
            id="rect20-6-6"
-           width="62.238148"
+           width="67.73333"
            height="32.014637"
            x="0.92601502"
            y="0.92601502"
@@ -145,14 +148,14 @@
         <text
            xml:space="preserve"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.6389px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.264583"
-           x="10.243435"
+           x="12.991026"
            y="23.230421"
            id="text142"
            inkscape:export-xdpi="96"
            inkscape:export-ydpi="96"><tspan
              sodipodi:role="line"
              id="tspan140"
-             x="10.243435"
+             x="12.991026"
              y="23.230421"
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.6389px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke-width:0.264583">RING</tspan></text>
       </g>
@@ -165,7 +168,7 @@
         <rect
            style="fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:1.85208;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
            id="rect20-6-6-8"
-           width="62.238148"
+           width="67.73333"
            height="32.014637"
            x="2.3099949"
            y="3.8364844"
@@ -173,12 +176,12 @@
         <text
            xml:space="preserve"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.6389px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.264583"
-           x="11.627415"
+           x="14.375006"
            y="26.14089"
            id="text142-8"><tspan
              sodipodi:role="line"
              id="tspan140-8"
-             x="11.627415"
+             x="14.375006"
              y="26.14089"
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.6389px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke-width:0.264583">RING</tspan></text>
       </g>
@@ -191,8 +194,8 @@
         <rect
            style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:1.85208;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
            id="rect20-6-6-0"
-           width="62.238148"
-           height="32.014637"
+           width="67.73333"
+           height="32.014584"
            x="0.92601502"
            y="0.92601502"
            ry="5.5127053"
@@ -201,16 +204,16 @@
         <text
            xml:space="preserve"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.6389px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.264583"
-           x="11.84856"
-           y="23.230421"
+           x="4.1804023"
+           y="23.230394"
            id="text142-3"
            inkscape:export-xdpi="96"
            inkscape:export-ydpi="96"><tspan
              sodipodi:role="line"
              id="tspan140-0"
-             x="11.84856"
-             y="23.230421"
-             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.6389px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke-width:0.264583">FREE</tspan></text>
+             x="4.1804023"
+             y="23.230394"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.6389px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke-width:0.264583">SIMPLE</tspan></text>
       </g>
       <g
          id="g147-4-9"
@@ -219,24 +222,28 @@
          inkscape:export-xdpi="96"
          inkscape:export-ydpi="96">
         <rect
-           style="fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:1.85208;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+           style="fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:2.06558;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
            id="rect20-6-6-8-2"
-           width="62.238148"
-           height="32.014637"
-           x="2.3099949"
-           y="3.8364844"
-           ry="5.5127053" />
+           width="67.73333"
+           height="31.801132"
+           x="2.4167473"
+           y="3.9432368"
+           ry="5.4759417"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96" />
         <text
            xml:space="preserve"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.6389px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.264583"
-           x="13.23254"
+           x="5.6711345"
            y="26.14089"
-           id="text142-8-5"><tspan
+           id="text142-8-5"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96"><tspan
              sodipodi:role="line"
              id="tspan140-8-4"
-             x="13.23254"
+             x="5.6711345"
              y="26.14089"
-             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.6389px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke-width:0.264583">FREE</tspan></text>
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.6389px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke-width:0.264583">SIMPLE</tspan></text>
       </g>
     </g>
   </g>

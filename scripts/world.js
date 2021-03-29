@@ -1,7 +1,7 @@
 const nodeScale = 0.4;
 
 class World {
-    mode = "free";
+    mode = "simple";
     speed = 50.0;
 
     constructor(mode) {
@@ -82,20 +82,17 @@ class World {
 
     addNode(target, position = undefined) {
         var node;
-        if (this.mode == "free") {
-            node = new GenericNode(this.nextID);
+        if (this.mode == "simple") {
+            node = new SimpleNode(this.nextID, this, target);
         }
         else if (this.mode == "ring") {
-            node = new RingNode(this.nextID, target);
+            node = new RingNode(this.nextID, this, target);
         }
         this.nextID += 1;
         this.nodes.set(node.id, node);
 
         let targetN = this.getNode(target);
         if (targetN != undefined) {
-            if (this.mode == "free") {
-                this.addConnection(node, targetN, false);
-            }
             node.position[0] = targetN.position[0] + (Math.random() - 0.5) * 200.0;
             node.position[1] = targetN.position[1] + (Math.random() - 0.5) * 200.0;
         }
@@ -138,7 +135,11 @@ class World {
     }
 
     killConnection(id) {
-        this.connections.get(id).destroy();
+        let con = this.connections.get(id);
+        if (con == undefined) {
+            return;
+        }
+        con.destroy();
         this.connections.delete(id);
     }
 
@@ -262,6 +263,15 @@ class Connection {
 
     send(node, msg) {
         this.queue.push([node, msg]);
+    }
+
+    getOther(node) {
+        if (this.n1 == node) {
+            return this.n2;
+        }
+        else if (this.n2 == node) {
+            return this.n1;
+        }
     }
 }
 
