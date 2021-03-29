@@ -36,17 +36,20 @@ let createButOnTex = PIXI.Texture.from('assets/create_button_on.png');
 let createButOffTex = PIXI.Texture.from('assets/create_button_off.png');
 let deleteButOnTex = PIXI.Texture.from('assets/delete_button_on.png');
 let deleteButOffTex = PIXI.Texture.from('assets/delete_button_off.png');
+let freeButOnTex = PIXI.Texture.from('assets/free_on.png');
+let freeButOffTex = PIXI.Texture.from('assets/free_off.png');
+let ringButOnTex = PIXI.Texture.from('assets/ring_on.png');
+let ringButOffTex = PIXI.Texture.from('assets/ring_off.png');
 let nodeTex = PIXI.Texture.from('assets/node.png');
 
 let createBut = new PIXI.Sprite(createButOffTex);
-createBut.anchor.set(0.5);
 createBut.scale.x = 0.25;
 createBut.scale.y = 0.25;
-createBut.x = 24;
-createBut.y = 24;
+createBut.x = 8;
+createBut.y = 8;
 createBut.interactive = true;
 createBut.buttonMode = true;
-createBut.data = { mode: "create" };
+createBut.data = { reset: false, mode: "create" };
 app.stage.addChild(createBut);
 createBut
     .on('pointerup', butPointerUp)
@@ -54,16 +57,43 @@ createBut
     .on('pointerout', butPointerOut);
 
 let deleteBut = new PIXI.Sprite(deleteButOffTex);
-deleteBut.anchor.set(0.5);
 deleteBut.scale.x = 0.25;
 deleteBut.scale.y = 0.25;
-deleteBut.x = 64;
-deleteBut.y = 24;
+deleteBut.x = 48;
+deleteBut.y = 8;
 deleteBut.interactive = true;
 deleteBut.buttonMode = true;
-deleteBut.data = { mode: "delete" };
+deleteBut.data = { reset: false, mode: "delete" };
 app.stage.addChild(deleteBut);
 deleteBut
+    .on('pointerup', butPointerUp)
+    .on('pointerover', butPointerOver)
+    .on('pointerout', butPointerOut);
+
+let freeBut = new PIXI.Sprite(freeButOffTex);
+freeBut.scale.x = 0.25;
+freeBut.scale.y = 0.25;
+freeBut.x = 88;
+freeBut.y = 8;
+freeBut.interactive = true;
+freeBut.buttonMode = true;
+freeBut.data = { reset: true, mode: "free" };
+app.stage.addChild(freeBut);
+freeBut
+    .on('pointerup', butPointerUp)
+    .on('pointerover', butPointerOver)
+    .on('pointerout', butPointerOut);
+
+let ringBut = new PIXI.Sprite(ringButOffTex);
+ringBut.scale.x = 0.25;
+ringBut.scale.y = 0.25;
+ringBut.x = 88 + 68;
+ringBut.y = 8;
+ringBut.interactive = true;
+ringBut.buttonMode = true;
+ringBut.data = { reset: true, mode: "ring" };
+app.stage.addChild(ringBut);
+ringBut
     .on('pointerup', butPointerUp)
     .on('pointerover', butPointerOver)
     .on('pointerout', butPointerOut);
@@ -71,8 +101,9 @@ deleteBut
 // Start app
 
 let inputMode = "none";
-let world = new World("ring");
+let world = new World("free");
 app.ticker.add(delta => world.update(delta));
+updateButtonTex();
 
 function updateButtonTex() {
     if (inputMode == "create" || createBut.hovered) {
@@ -88,17 +119,37 @@ function updateButtonTex() {
     else {
         deleteBut.texture = deleteButOffTex;
     }
+
+    if (world.mode == "free" || freeBut.hovered) {
+        freeBut.texture = freeButOnTex;
+    }
+    else {
+        freeBut.texture = freeButOffTex;
+    }
+
+    if (world.mode == "ring" || ringBut.hovered) {
+        ringBut.texture = ringButOnTex;
+    }
+    else {
+        ringBut.texture = ringButOffTex;
+    }
 }
 
 function butPointerUp() {
-    if (inputMode == this.data.mode) {
-        inputMode = "none";
+    if (this.data.reset) {
+        world.destroy();
+        world = new World(this.data.mode);
     }
     else {
-        inputMode = this.data.mode;
+        if (inputMode == this.data.mode) {
+            inputMode = "none";
+        }
+        else {
+            inputMode = this.data.mode;
+        }
+    
+        updateButtonTex();
     }
-
-    updateButtonTex();
 }
 
 function butPointerOver() {

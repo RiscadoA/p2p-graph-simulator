@@ -1,6 +1,7 @@
 const nodeScale = 0.4;
 
 class World {
+    mode = "free";
     speed = 50.0;
 
     constructor(mode) {
