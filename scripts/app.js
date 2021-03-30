@@ -20,7 +20,15 @@ background.on('pointerup', function (event) {
         let pos = event.data.getLocalPosition(background);
         world.addNode(-1, [pos.x, pos.y])
     }
-})
+    else if (inputMode == "line") {
+        world.nodeUp(-1);
+    }
+});
+background.on('pointerover', function (event) {
+    if (inputMode == "line") {
+        world.nodeOver(-1);
+    }
+});
 app.stage.addChild(background);
 
 // Add containers
@@ -38,10 +46,14 @@ let createButOnTex = PIXI.Texture.from('assets/create_button_on.png');
 let createButOffTex = PIXI.Texture.from('assets/create_button_off.png');
 let deleteButOnTex = PIXI.Texture.from('assets/delete_button_on.png');
 let deleteButOffTex = PIXI.Texture.from('assets/delete_button_off.png');
+let lineButOnTex = PIXI.Texture.from('assets/line_on.png');
+let lineButOffTex = PIXI.Texture.from('assets/line_off.png');
 let simpleButOnTex = PIXI.Texture.from('assets/simple_on.png');
 let simpleButOffTex = PIXI.Texture.from('assets/simple_off.png');
 let ringButOnTex = PIXI.Texture.from('assets/ring_on.png');
 let ringButOffTex = PIXI.Texture.from('assets/ring_off.png');
+let helpButOnTex = PIXI.Texture.from('assets/help_on.png');
+let helpButOffTex = PIXI.Texture.from('assets/help_off.png');
 let nodeTex = PIXI.Texture.from('assets/node.png');
 let arrowTex = PIXI.Texture.from('assets/arrow.png');
 
@@ -73,10 +85,24 @@ deleteBut
     .on('pointerover', butPointerOver)
     .on('pointerout', butPointerOut);
 
+let lineBut = new PIXI.Sprite(lineButOffTex);
+lineBut.scale.x = 0.25;
+lineBut.scale.y = 0.25;
+lineBut.x = 88;
+lineBut.y = 8;
+lineBut.interactive = true;
+lineBut.buttonMode = true;
+lineBut.data = { reset: false, mode: "line" };
+app.stage.addChild(lineBut);
+lineBut
+    .on('pointerup', butPointerUp)
+    .on('pointerover', butPointerOver)
+    .on('pointerout', butPointerOut);
+
 let simpleBut = new PIXI.Sprite(simpleButOffTex);
 simpleBut.scale.x = 0.25;
 simpleBut.scale.y = 0.25;
-simpleBut.x = 88;
+simpleBut.x = 128;
 simpleBut.y = 8;
 simpleBut.interactive = true;
 simpleBut.buttonMode = true;
@@ -90,13 +116,27 @@ simpleBut
 let ringBut = new PIXI.Sprite(ringButOffTex);
 ringBut.scale.x = 0.25;
 ringBut.scale.y = 0.25;
-ringBut.x = 162;
+ringBut.x = 202;
 ringBut.y = 8;
 ringBut.interactive = true;
 ringBut.buttonMode = true;
 ringBut.data = { reset: true, mode: "ring" };
 app.stage.addChild(ringBut);
 ringBut
+    .on('pointerup', butPointerUp)
+    .on('pointerover', butPointerOver)
+    .on('pointerout', butPointerOut);
+
+let helpBut = new PIXI.Sprite(ringButOffTex);
+helpBut.scale.x = 0.25;
+helpBut.scale.y = 0.25;
+helpBut.x = window.innerWidth - 40;
+helpBut.y = 8;
+helpBut.interactive = true;
+helpBut.buttonMode = true;
+helpBut.data = { mode: "help" };
+app.stage.addChild(helpBut);
+helpBut
     .on('pointerup', butPointerUp)
     .on('pointerover', butPointerOver)
     .on('pointerout', butPointerOut);
@@ -147,6 +187,13 @@ function updateButtonTex() {
         deleteBut.texture = deleteButOffTex;
     }
 
+    if (inputMode == "line" || lineBut.hovered) {
+        lineBut.texture = lineButOnTex;
+    }
+    else {
+        lineBut.texture = lineButOffTex;
+    }
+
     if (world.mode == "simple" || simpleBut.hovered) {
         simpleBut.texture = simpleButOnTex;
     }
@@ -159,6 +206,13 @@ function updateButtonTex() {
     }
     else {
         ringBut.texture = ringButOffTex;
+    }
+    
+    if (helpBut.hovered) {
+        helpBut.texture = helpButOnTex;
+    }
+    else {
+        helpBut.texture = helpButOffTex;
     }
 
     if (world.mode == "ring") {
@@ -193,7 +247,10 @@ function butPointerUp() {
         world = new World(mode);
     }
     else {
-        if (inputMode == this.data.mode) {
+        if (this.data.mode == "help") {
+            window.open('https://riscadoa.com/web-dev/ourchat-1/');
+        }
+        else if (inputMode == this.data.mode) {
             inputMode = "none";
         }
         else {

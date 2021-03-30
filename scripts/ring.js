@@ -312,6 +312,19 @@ class RingNode extends GenericNode {
 		}
 	}
 
+	lineConnect(target) {
+		// Request bootstrap nodes
+		let con = world.addConnection(this, world.getNode(target), 1);
+		if (con != undefined) {
+			con.send(this, {
+				type: "requestBootstrap",
+				src: this.id,
+			});
+			this.bootstrapPeers.clear();
+			this.bootstrapPeers.add(target);
+		}
+	}
+
 	static distance(u, v) {
 		const MAX_INDEX = 1000000; 
 		return (((v - u) % MAX_INDEX) + MAX_INDEX) % MAX_INDEX;

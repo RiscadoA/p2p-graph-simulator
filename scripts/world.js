@@ -13,6 +13,21 @@ class World {
         this.nextConID = 0;
         
         this.addNode(-1, [ window.innerWidth / 2.0, window.innerHeight / 2.0 ]);
+
+        this.graphics = new PIXI.Graphics();
+        this.graphics.beginFill(0x5CD400);
+        this.graphics.drawRect(0, -0.5, 1, 1);
+        this.graphics.alpha = 1.0;
+        this.graphics.visible = false;
+        connectionContainer.addChild(this.graphics);
+        this.arrow = new PIXI.Sprite(arrowTex);
+        this.arrow.anchor.set(0.5);
+        this.arrow.scale.x = ARROW_SCALE;
+        this.arrow.scale.y = ARROW_SCALE;
+        this.arrow.alpha = 1.0;
+        this.arrow.tint = 0x5CD400;
+        this.arrow.visible = false;
+        arrowContainer.addChild(this.arrow);
     }
     
     update(dt) {
@@ -65,6 +80,7 @@ class World {
             r1 = it1.next();
         }
 
+        // Update nodes        
         for (const [id, node] of this.nodes.entries()) {
             let offx = window.innerWidth / 2.0 - node.position[0];
             let offy = window.innerHeight / 2.0 - node.position[1];
@@ -81,8 +97,64 @@ class World {
             node.update(this.speed * dt);
         }
 
+        // Update connections
         for (const [id, con] of this.connections.entries()) {
             con.update(this.speed * dt);
+        }
+
+        // Update line
+        if (inputMode != "line") {
+            this.lineNode = undefined;
+            this.graphics.visible = false;
+            this.arrow.visible = false;
+        }
+        else if (this.lineNode != undefined) {
+            let node = this.getNode(this.lineNode);
+            if (node == undefined) {
+                this.lineNode = undefined;
+                this.graphics.visible = false;
+                this.arrow.visible = false;
+            }
+            else {
+                let targetPos = app.renderer.plugins.interaction.mouse.global;
+                if (this.overNode != -1) {
+                    let overNode = this.getNode(this.overNode);
+                    if (overNode != undefined) {
+                        targetPos = {
+                            x: overNode.position[0],
+                            y: overNode.position[1]
+                        };
+                    }
+                    else {
+                        this.overNode = undefined;
+                    }
+                }
+                
+                let dirx = targetPos.x - node.position[0];
+                let diry = targetPos.y - node.position[1];
+                let sqr_dist = dirx * dirx + diry * diry;
+                let dist = Math.sqrt(sqr_dist);
+                dirx /= dist;
+                diry /= dist;
+                this.graphics.rotation = Math.atan2(diry, dirx);
+                this.graphics.x = node.position[0];
+                this.graphics.y = node.position[1];
+                this.graphics.scale.x = dist;
+                this.graphics.scale.y = NODE_SCALE * 10.0;
+                
+                this.arrow.rotation = Math.atan2(diry, dirx) + Math.PI / 2.0;
+
+                if (this.overNode == undefined) {
+                    this.arrow.x = targetPos.x - dirx * ARROW_SCALE * 16.0;
+                    this.arrow.y = targetPos.y - diry * ARROW_SCALE * 16.0;
+                    this.graphics.scale.x -= ARROW_SCALE * 31.0;
+                }
+                else {
+                    this.arrow.x = targetPos.x - dirx * (NODE_SCALE * 64.0 + ARROW_SCALE * 16.0);
+                    this.arrow.y = targetPos.y - diry * (NODE_SCALE * 64.0 + ARROW_SCALE * 16.0);
+                    this.graphics.scale.x -= NODE_SCALE * 64.0 + ARROW_SCALE * 31.0;
+                }
+            }
         }
     }
 
@@ -176,13 +248,43 @@ class World {
         return this.nodes.get(id);
     }
 
-    nodeClicked(id) {
+    nodeDown(id) {
+        this.lineNode = undefined;
+        if (inputMode == "line") {
+            this.lineNode = id;
+            this.graphics.visible = true;
+            this.arrow.visible = true;
+        }
+    }
+
+    nodeOver(id) {
+        if (id == -1) {
+            this.overNode = undefined;
+        }
+        else {
+            this.overNode = id;
+        }
+    }
+
+    nodeUp(id) {
         if (inputMode == "create") {
             this.addNode(id);
         }
         else if (inputMode == "delete") {
             this.killNode(id);
         }
+        else if (inputMode == "line") {
+            if (this.lineNode != undefined && this.lineNode != id) {
+                let node = this.getNode(this.lineNode);
+                if (node != undefined) {
+                    node.lineConnect(id);
+                }
+            }
+        }
+
+        this.graphics.visible = false;
+        this.arrow.visible = false;
+        this.lineNode = undefined;
     }
 
     connectionClicked(id) {
@@ -192,6 +294,9 @@ class World {
     }
 
     destroy() {
+        connectionContainer.removeChild(this.graphics);
+        arrowContainer.removeChild(this.arrow);
+
         let it = this.nodes.entries().next();
         while (!it.done) {
             this.killNode(it.value[0]);
@@ -428,8 +533,11 @@ class GenericNode {
         this.sprite.node = this;
         this.sprite.tint = Math.random() * 0xFFFFFF;
         this.sprite
+            .on('pointerdown', function() {
+                world.nodeDown(this.node.id);
+            })
             .on('pointerup', function() {
-                world.nodeClicked(this.node.id);
+                world.nodeUp(this.node.id);
             })
             .on('pointerover', function() {
                 this.tooltip = new PIXI.Text(this.node.id, {
@@ -441,6 +549,7 @@ class GenericNode {
                 this.tooltip.x = -this.tooltip.width / 2.0;
                 this.tooltip.y = -this.tooltip.height / 2.0;
                 this.addChild(this.tooltip);
+                world.nodeOver(this.node.id);
             })
             .on('pointerout', function() {
                 this.removeChild(this.tooltip);
@@ -472,5 +581,9 @@ class GenericNode {
         nodeContainer.removeChild(this.sprite);
         delete this.sprite;
         this.destroyed = true;
+    }
+
+    lineConnect(id) {
+        // Overriden by child classes
     }
 }

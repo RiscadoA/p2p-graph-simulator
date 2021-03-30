@@ -84,6 +84,12 @@ class SimpleNode extends GenericNode {
 				}
 
 				con.promote(this, world.getNode(msg.src), undefined);
+				con.send(this, {
+					type: "givePeers",
+					src: this.id,
+					peers: this.peers
+				});
+				
 				this.peers.push(msg.src);
 				break;
 			}
@@ -105,6 +111,17 @@ class SimpleNode extends GenericNode {
 
 				break;
 			}
+		}
+	}
+
+	lineConnect(target) {
+		// Try to connect
+		let con = world.addConnection(this, world.getNode(target), 1);
+		if (con != undefined) {
+			con.send(this, {
+				type: "requestConnection",
+				src: this.id,
+			});
 		}
 	}
 }
