@@ -319,10 +319,13 @@ class Connection {
                     }
                 }
             }
-        }    
+        }
      
         // Connection dead?
         if (!this.dirs[0] && !this.dirs[1]) {
+            world.killConnection(this.id);
+        }
+        else if (this.n1.destroyed || this.n2.destroyed) {
             world.killConnection(this.id);
         }
     }
@@ -402,6 +405,7 @@ class GenericNode {
     position = [ 0.0, 0.0 ];
     force = [ 0.0, 0.0 ];
     id = 0;
+    destroyed = false;
 
     constructor(id) {
         this.id = id;
@@ -457,5 +461,6 @@ class GenericNode {
     destroy() {
         nodeContainer.removeChild(this.sprite);
         delete this.sprite;
+        this.destroyed = true;
     }
 }

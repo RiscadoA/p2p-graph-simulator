@@ -31,7 +31,6 @@ class RingNode extends GenericNode {
 				type: "requestBootstrap",
 				src: this.id,
 			});
-			this.requestedConnections.set(target, [this.time, con]);
 			this.bootstrapPeers.add(target);
 		}
 	}
@@ -40,16 +39,6 @@ class RingNode extends GenericNode {
 		super.update(dt);
 
 		this.time += dt;
-
-		// Check connection timeouts
-		for (const [target, [time, con]] of this.requestedConnections.entries()) {
-			if (this.time - time > RingNode.CON_TIMEOUT) {
-				world.killConnection(con.id);
-				this.requestedConnections.delete(target);
-				this.neighbours.splice(this.neighbours.indexOf(target), 1);
-				break;
-			}
-        }
 	}
 
 	process(msg) {
