@@ -213,6 +213,7 @@ class Connection {
         this.dirs = [true, false];
         this.queue = [];
         this.time = 0.0;
+        this.tooltip = undefined;
 
         // Graphics
         this.graphics = new PIXI.Graphics();
@@ -222,7 +223,7 @@ class Connection {
         this.graphics.interactive = true;
         this.graphics.buttonMode = true;
         this.graphics.connection = this;
-        this.graphics.on('pointerup', function() { world.connectionClicked(this.connection.id); })
+        this.graphics.on('pointerup', function() { world.connectionClicked(this.connection.id); });
         connectionContainer.addChild(this.graphics);
     }
 
@@ -412,7 +413,25 @@ class GenericNode {
         this.sprite.buttonMode = true;
         this.sprite.node = this;
         this.sprite.tint = Math.random() * 0xFFFFFF;
-        this.sprite.on('pointerup', function() { world.nodeClicked(this.node.id); })
+        this.sprite
+            .on('pointerup', function() {
+                world.nodeClicked(this.node.id);
+            })
+            .on('pointerover', function() {
+                this.tooltip = new PIXI.Text(this.node.id, {
+                    fontSize: 40,
+                    fontWeight: 'bold',
+                    fill: '#000000',
+                    align : 'center'
+                });
+                this.tooltip.x = -this.tooltip.width / 2.0;
+                this.tooltip.y = -this.tooltip.height / 2.0;
+                this.addChild(this.tooltip);
+            })
+            .on('pointerout', function() {
+                this.removeChild(this.tooltip);
+                delete this.tooltip;
+            });
         nodeContainer.addChild(this.sprite);
 
         this.queue = [];
