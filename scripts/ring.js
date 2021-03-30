@@ -1,10 +1,6 @@
 /*
 	Message types:
 
-	- requestConnection:
-		- src (id)
-	- acceptConnection:
-		- src (id)
 	- requestBootstrap:
 		- src (id)
 	- bootstrap:
@@ -14,6 +10,7 @@
 class RingNode extends GenericNode {
 	static CON_TIMEOUT = 10.0; 
 	static MAX_BOOTSTRAP_PEERS = 8;
+	static MAX_NEIGHBOURS = 1;
 
 	constructor(id, world, target) {
 		super(id);
@@ -24,17 +21,18 @@ class RingNode extends GenericNode {
 		this.bootstrapPeers = new Set();
 		this.successorCandidatesB = new Set();
 		this.successorCandidatesW = new Set();
-		this.neighbours = [];
+		this.neighbours = new Array(this.MAX_NEIGHBOURS);
+		this.neighbours.fill(undefined);
 
-		// Try to connect to network
-		let con = world.addConnection(this, world.getNode(target), true);
+		// Request bootstrap nodes
+		let con = world.addConnection(this, world.getNode(target), 1);
 		if (con != undefined) {
 			con.send(this, {
-				type: "requestConnection",
+				type: "requestBootstrap",
 				src: this.id,
 			});
 			this.requestedConnections.set(target, [this.time, con]);
-			this.bootstrapPeers.push(target);
+			this.bootstrapPeers.add(target);
 		}
 	}
 
@@ -56,29 +54,34 @@ class RingNode extends GenericNode {
 
 	process(msg) {
 		switch (msg.type) {
-			case "requestConnection": {
-				// Accept incoming connctions, send bootstrapping IDs
-				let con = world.getConnection(this, world.getNode(msg.src));
+			case "requestBootstrap": {
+				// Send bootstrapping IDs
+				let con = world.addConnection(this, world.getNode(msg.src), 1);
 				if (con != undefined) {
 					con.send(this, {
-						type: "acceptConnection",
+						type: "bootstrap",
 						src: this.id,
+						peers: new Set(this.bootstrapPeers)
 					});
 				}				
 				break;
 			}
-			case "acceptConnection": {
+			case "bootstrap": {
 				// Receive bootstrapping IDs
-				if (this.requestedConnections.get(msg.src) != undefined) {
-					con.promote();
-					this.requestedConnections.delete(msg.src);
-					if (this.neighbours.indexOf(msg.src) == -1) {
-						this.neighbours.push(msg.src);
+				for (let peer of msg.peers.values()) {
+					if (this.bootstrapPeers.size >= this.MAX_BOOTSTRAP_PEERS) {
+						break;
+					}
+					this.bootstrapPeers.add(peer);
+				}
+
+				// Set peer as successor if this doesn't have a successor
+				if (this.neighbours[0] == undefined) {
+					let con = world.addConnection(this, world.getNode(msg.src));
+					if (con != undefined) {
+						this.neighbours[0] = msg.src;
 					}
 				}
-				break;
-			}
-			case "requestBootstrap" {
 				break;
 			}
 		}
