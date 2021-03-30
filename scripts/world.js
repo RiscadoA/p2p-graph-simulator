@@ -38,8 +38,11 @@ class World {
                     let dx = offx / dist;
                     let dy = offy / dist;
 
-                    let con = this.getConnection(n1, n2)
-                    if (con != undefined && !con.temp) {
+                    let con = this.getConnection(n1, n2);
+                    if (con == undefined) {
+                        con = this.getConnection(n2, n1);
+                    }
+                    if (con != undefined && !(con.uses[0] != undefined && con.uses[1] != undefined)) {
                         let s = dist - 100.0;
                         n1.force[0] -= dx * s * 0.02;
                         n1.force[1] -= dy * s * 0.02;
