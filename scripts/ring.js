@@ -44,6 +44,16 @@ class RingNode extends GenericNode {
 	update(dt) {
 		super.update(dt);
 
+		// Check neighbour connections
+		for (let i = 0; i < this.neighbours.length; ++i) {
+			if (this.neighbours[i] != undefined) {
+				let con = world.addConnection(this, world.getNode(this.neighbours[i]));
+				if (con == undefined) {
+					this.neighbours[i] = undefined;
+				}
+			}
+		}		
+
 		// Update RN protocol
 		this.time += dt;
 		if (this.time > RingNode.UPDATE_TIME) {
