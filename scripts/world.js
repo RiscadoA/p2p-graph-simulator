@@ -3,13 +3,15 @@ const ARROW_SCALE = 0.4;
 
 class World {
     mode = "simple";
-    speed = 50.0;
+    speed = 500.0;
 
     constructor(mode) {
         this.mode = mode;
         this.nodes = new Map();
         this.connections = new Map();
-        this.nextID = 0;    
+        this.nextNodeID = 0;
+        this.nextConID = 0;
+        
         this.addNode(-1, [ window.innerWidth / 2.0, window.innerHeight / 2.0 ]);
     }
     
@@ -87,12 +89,12 @@ class World {
     addNode(target, position = undefined) {
         var node;
         if (this.mode == "simple") {
-            node = new SimpleNode(this.nextID, this, target);
+            node = new SimpleNode(this.nextNodeID, this, target);
         }
         else if (this.mode == "ring") {
-            node = new RingNode(this.nextID, this, target);
+            node = new RingNode(this.nextNodeID, this, target);
         }
-        this.nextID += 1;
+        this.nextNodeID += 1;
         this.nodes.set(node.id, node);
 
         let targetN = this.getNode(target);
@@ -144,8 +146,8 @@ class World {
             return con;
         }
 
-        con = new Connection(this.nextID, n1, n2, uses);
-        this.nextID += 1;
+        con = new Connection(this.nextConID, n1, n2, uses);
+        this.nextConID += 1;
         this.connections.set(con.id, con);
         n1.connections.push(con);
         return con;
@@ -217,25 +219,20 @@ class Connection {
 
         // Graphics
         this.graphics = new PIXI.Graphics();
-        this.arrows = [undefined, undefined]
-        this.checkGraphics();
+        this.graphics.beginFill(0xFFFFFF);
+        this.graphics.drawRect(0, -0.5, 1, 1);
+        this.graphics.alpha = 0.5;
         this.graphics.hitArea = new PIXI.Rectangle(0, -0.5, 1, 1);
         this.graphics.interactive = true;
         this.graphics.buttonMode = true;
         this.graphics.connection = this;
         this.graphics.on('pointerup', function() { world.connectionClicked(this.connection.id); });
         connectionContainer.addChild(this.graphics);
+        this.arrows = [undefined, undefined]
+        this.checkGraphics();
     }
 
     checkGraphics() {
-        if (this.uses[0] != undefined && this.uses[1] != undefined) {
-            this.graphics.beginFill(0x888888);
-        }
-        else {
-            this.graphics.beginFill(0xFFFFFF);
-        }
-        this.graphics.drawRect(0, -0.5, 1, 1);
-
         for (let i = 0; i < 2; ++i) {
             if (this.dirs[i]) {
                 if (this.arrows[i] == undefined) {
@@ -243,6 +240,7 @@ class Connection {
                     this.arrows[i].anchor.set(0.5);
                     this.arrows[i].scale.x = ARROW_SCALE;
                     this.arrows[i].scale.y = ARROW_SCALE;
+                    this.arrows[i].alpha = 0.5;
                     arrowContainer.addChild(this.arrows[i]);
                 }
                 
@@ -265,6 +263,14 @@ class Connection {
     }
 
     update(dt) {
+        // Connection dead?
+        if (!this.dirs[0] && !this.dirs[1]) {
+            world.killConnection(this.id);
+        }
+        else if (this.n1.destroyed || this.n2.destroyed) {
+            world.killConnection(this.id);
+        }
+
         // Update graphics
         let dirx = this.n2.position[0] - this.n1.position[0];
         let diry = this.n2.position[1] - this.n1.position[1];
@@ -279,22 +285,22 @@ class Connection {
         this.graphics.scale.y = NODE_SCALE * 10.0;
         if (this.arrows[1] != undefined) {
             this.arrows[1].rotation = Math.atan2(diry, dirx) - Math.PI / 2.0;
-            this.arrows[1].x = this.n1.position[0] + dirx * (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
-            this.arrows[1].y = this.n1.position[1] + diry * (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
-            this.graphics.x = this.n1.position[0] + dirx * (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
-            this.graphics.y = this.n1.position[1] + diry * (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
-            this.graphics.scale.x -= (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
+            this.arrows[1].x = this.n1.position[0] + dirx * (NODE_SCALE * 64.0 + ARROW_SCALE * 16.0);
+            this.arrows[1].y = this.n1.position[1] + diry * (NODE_SCALE * 64.0 + ARROW_SCALE * 16.0);
+            this.graphics.x = this.n1.position[0] + dirx * (NODE_SCALE * 64.0 + ARROW_SCALE * 31.0);
+            this.graphics.y = this.n1.position[1] + diry * (NODE_SCALE * 64.0 + ARROW_SCALE * 31.0);
+            this.graphics.scale.x -= (NODE_SCALE * 64.0 + ARROW_SCALE * 31.0);
         }
         if (this.arrows[0] != undefined) {
             this.arrows[0].rotation = Math.atan2(diry, dirx) + Math.PI / 2.0;
-            this.arrows[0].x = this.n2.position[0] - dirx * (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
-            this.arrows[0].y = this.n2.position[1] - diry * (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
-            this.graphics.scale.x -= (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
+            this.arrows[0].x = this.n2.position[0] - dirx * (NODE_SCALE * 64.0 + ARROW_SCALE * 16.0);
+            this.arrows[0].y = this.n2.position[1] - diry * (NODE_SCALE * 64.0 + ARROW_SCALE * 16.0);
+            this.graphics.scale.x -= (NODE_SCALE * 64.0 + ARROW_SCALE * 31.0);
         }
 
         // Pump messages
         this.time += Math.random() * dt;
-        if (this.time > 1.0) {
+        if (this.time > 0.2) {
             this.time = 0.0;
 
             if (this.queue.length > 0) {
@@ -314,34 +320,38 @@ class Connection {
                     if (this.uses[1] != undefined) {
                         this.uses[1] -= 1;
                         if (this.uses[1] <= 0) {
-                            this.destroy(this.n1);
+                            this.destroy(this.n2);
                         }
                     }
                 }
             }
         }
-     
-        // Connection dead?
-        if (!this.dirs[0] && !this.dirs[1]) {
-            world.killConnection(this.id);
-        }
-        else if (this.n1.destroyed || this.n2.destroyed) {
-            world.killConnection(this.id);
-        }
     }
 
     promote(n1, n2, uses) {
         if (this.n1 == n1 && this.n2 == n2) {
+            if (!this.dirs[0]) {
+                this.uses[0] = 0;
+            }
             this.dirs[0] = true;
-            if (uses == undefined || (this.uses[0] != undefined && this.uses[0] < uses)) {
+            if (uses == undefined) {
                 this.uses[0] = uses;
+            }
+            else if (this.uses[0] != undefined) {
+                this.uses[0] += uses;
             }
             this.checkGraphics();
         }
         else if (this.n1 == n2 && this.n2 == n1) {
+            if (!this.dirs[1]) {
+                this.uses[1] = 0;
+            }
             this.dirs[1] = true;
-            if (uses == undefined || (this.uses[1] != undefined && this.uses[1] < uses)) {
+            if (uses == undefined) {
                 this.uses[1] = uses;
+            }
+            else if (this.uses[1] != undefined) {
+                this.uses[1] += uses;
             }
             this.checkGraphics();
         }
