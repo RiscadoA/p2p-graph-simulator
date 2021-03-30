@@ -104,6 +104,17 @@ class RingNode extends GenericNode {
 				case 1: {
 					// Peer is isolated
 					if (this.bootstrapPeers.size == 0) {
+						for (let i = 0; i < this.neighbours.length; ++i) {
+							if (this.neighbours[i] != undefined) {
+								let con = world.addConnection(this, world.getNode(this.neighbours[i]), 1);
+								if (con != undefined) {
+									con.send(this, {
+										type: "requestBootstrap",
+										src: this.id,
+									});
+								}
+							}
+						}
 						break;
 					}
 
@@ -194,6 +205,10 @@ class RingNode extends GenericNode {
 				}
 
 				// Receive bootstrapping IDs
+				if (this.bootstrapPeers.size >= RingNode.MAX_BOOTSTRAP_PEERS) {
+					break;
+				}
+				this.bootstrapPeers.add(msg.src);
 				for (let peer of msg.peers.values()) {
 					if (this.bootstrapPeers.size >= RingNode.MAX_BOOTSTRAP_PEERS) {
 						break;
@@ -221,7 +236,7 @@ class RingNode extends GenericNode {
 				let closest = this.id;
 				let closestDistance = RingNode.distance(this.id, msg.src);
 				for (let i = 0; i < this.neighbours.length; ++i) {
-					if (this.neighbours[i] != undefined) {
+					if (this.neighbours[i] != undefined && this.neighbours[i] != msg.src) {
 						let dist = RingNode.distance(this.neighbours[i], msg.src);
 						if (dist < closestDistance) {
 							closest = this.neighbours[i];
