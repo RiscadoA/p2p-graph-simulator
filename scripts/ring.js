@@ -9,6 +9,12 @@
 		- src (id)
 	- successorCandidate:
 		- succesor (id)
+	- getNeighbour:
+		- src (id)
+		- index
+	- neighbour:
+		- neighbour (id)
+		- index
 */
 
 class RingNode extends GenericNode {
@@ -27,7 +33,7 @@ class RingNode extends GenericNode {
 		this.peers = new Set();
 		this.successorCandidatesB = new Set();
 		this.successorCandidatesW = new Set();
-		this.neighbours = new Array(this.MAX_NEIGHBOURS);
+		this.neighbours = new Array(RingNode.MAX_NEIGHBOURS);
 		this.neighbours.fill(undefined);
 
 		// Request bootstrap nodes
@@ -43,16 +49,6 @@ class RingNode extends GenericNode {
 
 	update(dt) {
 		super.update(dt);
-
-		// Check neighbour connections
-		for (let i = 0; i < this.neighbours.length; ++i) {
-			if (this.neighbours[i] != undefined) {
-				let con = world.addConnection(this, world.getNode(this.neighbours[i]));
-				if (con == undefined) {
-					this.neighbours[i] = undefined;
-				}
-			}
-		}		
 
 		// Update RN protocol
 		this.time += dt;
@@ -149,7 +145,24 @@ class RingNode extends GenericNode {
 					break;
 				}
 				case 2: {
-					// Get neighbours
+					// Update neighbours
+					for (let i = 0; i < this.neighbours.length; ++i) {
+						if (this.neighbours[i] != undefined) {
+							let con = world.addConnection(this, world.getNode(this.neighbours[i]));
+							if (con == undefined) {
+								this.neighbours[i] = undefined;
+								continue;
+							}
+
+							if (i < this.neighbours.length - 1) {
+								con.send(this, {
+									type: "getNeighbour",
+									src: this.id,
+									index: i,
+								});
+							}
+						}
+					}
 
 					break;
 				}
@@ -242,9 +255,58 @@ class RingNode extends GenericNode {
 				break;
 			}
 			case "successorCandidate": {
+				// Add successor candidate
 				if (msg.successor != this.id) {
 					this.successorCandidatesW.add(msg.successor);
 				}
+				break;
+			}
+			case "getNeighbour": {
+				// Get neighbour
+				if (msg.index < this.neighbours.length && this.neighbours[msg.index] != undefined) {
+					let con = world.addConnection(this, world.getNode(msg.src), 1);
+					if (con != undefined) {
+						con.send(this, {
+							type: "neighbour",
+							neighbour: this.neighbours[msg.index],
+							index: msg.index
+						});
+					}
+				}
+				
+				break;
+			}
+			case "neighbour": {
+				if (this.neighbours[msg.index] == undefined) {
+					break;
+				}
+
+				// Set neighbour
+				if (RingNode.distance(this.neighbours[msg.index], msg.neighbour) < RingNode.distance(this.neighbours[msg.index], this.id)) {
+					let con = world.addConnection(this, world.getNode(msg.neighbour));
+					if (con != undefined) {
+						// Destroy old connection
+						if (this.neighbours[msg.index + 1] != undefined && this.neighbours[msg.index + 1] != msg.neighbour) {
+							let oldCon = world.getConnection(this, world.getNode(this.neighbours[msg.index + 1]));
+							if (oldCon != undefined) {
+								oldCon.destroy(this);
+							}	
+						}
+
+						this.neighbours[msg.index + 1] = msg.neighbour;
+					}
+				}
+				else {
+					// Destroy connection
+					if (this.neighbours[msg.index + 1] != undefined) {
+						let con = world.getConnection(this, world.getNode(this.neighbours[msg.index + 1]));
+						if (con != undefined) {
+							con.destroy(this);
+						}	
+					}
+					this.neighbours[msg.index + 1] = undefined;
+				}
+				
 				break;
 			}
 		}

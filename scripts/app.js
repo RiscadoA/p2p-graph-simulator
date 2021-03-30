@@ -101,6 +101,30 @@ ringBut
     .on('pointerover', butPointerOver)
     .on('pointerout', butPointerOut);
 
+let numberButsTex = [];
+let numberButs = [];
+for (let i = 1; i <= 4; ++i) {
+    let onTex = PIXI.Texture.from('assets/' + i + '_on.png');
+    let offTex = PIXI.Texture.from('assets/' + i + '_off.png');
+    numberButsTex.push([onTex, offTex]);
+    let but = new PIXI.Sprite(offTex);
+    but.scale.x = 0.25;
+    but.scale.y = 0.25;
+    but.x = 8 + 40 * (i - 1);
+    but.y = 48;
+    but.interactive = true;
+    but.buttonMode = true;
+    but.number = i;
+    but.data = { reset: true, mode: "number" };
+    numberButs.push(but);
+    app.stage.addChild(but);
+    but
+        .on('pointerup', butPointerUp)
+        .on('pointerover', butPointerOver)
+        .on('pointerout', butPointerOut);
+    but.visible = false;
+}
+
 // Start app
 
 let inputMode = "none";
@@ -136,12 +160,37 @@ function updateButtonTex() {
     else {
         ringBut.texture = ringButOffTex;
     }
+
+    if (world.mode == "ring") {
+        for (let i = 0; i < 4; ++i) {
+            numberButs[i].visible = true;
+            if (RingNode.MAX_NEIGHBOURS == i + 1) {
+                numberButs[i].texture = numberButsTex[i][0];
+            }
+            else {
+                numberButs[i].texture = numberButsTex[i][1];
+            }
+        }
+    }
+    else {
+        for (let i = 0; i < 4; ++i) {
+            numberButs[i].visible = false;
+        }
+    }
 }
 
 function butPointerUp() {
     if (this.data.reset) {
+        let mode = this.data.mode;
+        if (this.data.mode == "number") {
+            mode = world.mode;
+            if (mode == "ring") {
+                RingNode.MAX_NEIGHBOURS = parseInt(this.number);
+            }
+        }
+
         world.destroy();
-        world = new World(this.data.mode);
+        world = new World(mode);
     }
     else {
         if (inputMode == this.data.mode) {
@@ -150,9 +199,9 @@ function butPointerUp() {
         else {
             inputMode = this.data.mode;
         }
-    
-        updateButtonTex();
     }
+
+    updateButtonTex();
 }
 
 function butPointerOver() {
