@@ -26,8 +26,10 @@ app.stage.addChild(background);
 // Add containers
 
 let connectionContainer = new PIXI.Container();
+let arrowContainer = new PIXI.Container();
 let nodeContainer = new PIXI.Container();
 app.stage.addChild(connectionContainer);
+app.stage.addChild(arrowContainer);
 app.stage.addChild(nodeContainer);
 
 // Init buttons
@@ -41,6 +43,7 @@ let simpleButOffTex = PIXI.Texture.from('assets/simple_off.png');
 let ringButOnTex = PIXI.Texture.from('assets/ring_on.png');
 let ringButOffTex = PIXI.Texture.from('assets/ring_off.png');
 let nodeTex = PIXI.Texture.from('assets/node.png');
+let arrowTex = PIXI.Texture.from('assets/arrow.png');
 
 let createBut = new PIXI.Sprite(createButOffTex);
 createBut.scale.x = 0.25;

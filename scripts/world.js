@@ -1,4 +1,5 @@
-const nodeScale = 0.4;
+const NODE_SCALE = 0.4;
+const ARROW_SCALE = 0.4;
 
 class World {
     mode = "simple";
@@ -67,8 +68,8 @@ class World {
 
             node.position[0] += node.force[0] * dt * 1000.0;
             node.position[1] += node.force[1] * dt * 1000.0;
-            node.position[0] = Math.min(Math.max(node.position[0], nodeScale * 64.0), window.innerWidth - nodeScale * 64.0);
-            node.position[1] = Math.min(Math.max(node.position[1], nodeScale * 64.0), window.innerHeight - nodeScale * 64.0);
+            node.position[0] = Math.min(Math.max(node.position[0], NODE_SCALE * 64.0), window.innerWidth - NODE_SCALE * 64.0);
+            node.position[1] = Math.min(Math.max(node.position[1], NODE_SCALE * 64.0), window.innerHeight - NODE_SCALE * 64.0);
             node.force[0] = 0.0;
             node.force[1] = 0.0;
 
@@ -122,15 +123,28 @@ class World {
         return undefined;
     }
     
-    addConnection(n1, n2, temp) {
+    addConnection(n1, n2, uses = undefined) {
         if (n1 == undefined || n2 == undefined) {
             return undefined;
         }
-        let con = new Connection(this.nextID, n1, n2, temp);
+
+        let con = this.getConnection(n1, n2);
+        if (con != undefined) {
+            con.promote(n1, n2, uses);
+            return con;
+        }
+
+        con = this.getConnection(n2, n1);
+        if (con != undefined) {
+            con.promote(n1, n2, uses);
+            n1.connections.push(con);
+            return con;
+        }
+
+        con = new Connection(this.nextID, n1, n2, uses);
         this.nextID += 1;
         this.connections.set(con.id, con);
         n1.connections.push(con);
-        n2.connections.push(con);
         return con;
     }
 
@@ -139,7 +153,8 @@ class World {
         if (con == undefined) {
             return;
         }
-        con.destroy();
+        con.destroy(con.n1);
+        con.destroy(con.n2);
         this.connections.delete(id);
     }
 
@@ -185,84 +200,187 @@ class Connection {
     n1 = null;
     n2 = null;
     temp = false;
+    uses = [undefined, undefined];
 
-    constructor(id, n1, n2, temp) {
+    constructor(id, n1, n2, uses) {
         this.id = id;
         this.n1 = n1;
         this.n2 = n2;
-        this.temp = temp;
+        this.uses = [uses, 0];
+        this.dirs = [true, false];
+        this.queue = [];
+        this.time = 0.0;
+
+        // Graphics
         this.graphics = new PIXI.Graphics();
-        if (this.temp) {
-            this.graphics.beginFill(0x888888);
-        }
-        else {
-            this.graphics.beginFill(0xFFFFFF);
-        }
-        this.graphics.drawRect(0, -0.5, 1, 1);
+        this.arrows = [undefined, undefined]
+        this.checkGraphics();
         this.graphics.hitArea = new PIXI.Rectangle(0, -0.5, 1, 1);
         this.graphics.interactive = true;
         this.graphics.buttonMode = true;
         this.graphics.connection = this;
         this.graphics.on('pointerup', function() { world.connectionClicked(this.connection.id); })
         connectionContainer.addChild(this.graphics);
-
-        this.queue = [];
-        this.time = 0.0;
     }
 
-    promote() {
-        if (this.temp) {
-            this.temp = false;
+    checkGraphics() {
+        if (this.uses[0] != undefined && this.uses[1] != undefined) {
+            this.graphics.beginFill(0x888888);
+        }
+        else {
             this.graphics.beginFill(0xFFFFFF);
-            this.graphics.drawRect(0, -0.5, 1, 1);
+        }
+        this.graphics.drawRect(0, -0.5, 1, 1);
+
+        for (let i = 0; i < 2; ++i) {
+            if (this.dirs[i]) {
+                if (this.arrows[i] == undefined) {
+                    this.arrows[i] = new PIXI.Sprite(arrowTex);
+                    this.arrows[i].anchor.set(0.5);
+                    this.arrows[i].scale.x = ARROW_SCALE;
+                    this.arrows[i].scale.y = ARROW_SCALE;
+                    arrowContainer.addChild(this.arrows[i]);
+                }
+                
+                if (this.uses[i] != undefined) {
+                    this.arrows[i].tint = 0x888888;
+                }
+                else {
+                    this.arrows[i].tint = 0xFFFFFF;
+                }
+            }
+            else if (this.arrows[i] != undefined && !this.dirs[i]) {
+                arrowContainer.removeChild(this.arrows[i]);
+                this.arrows[i] = undefined;
+            }
+        }
+
+        if (!this.dirs[0] && !this.dirs[1]) {
+            connectionContainer.removeChild(this.graphics);
         }
     }
 
     update(dt) {
-        let offx = this.n2.position[0] - this.n1.position[0];
-        let offy = this.n2.position[1] - this.n1.position[1];
-        let sqr_dist = offx * offx + offy * offy;
+        // Update graphics
+        let dirx = this.n2.position[0] - this.n1.position[0];
+        let diry = this.n2.position[1] - this.n1.position[1];
+        let sqr_dist = dirx * dirx + diry * diry;
         let dist = Math.sqrt(sqr_dist);
-
-        this.graphics.rotation = Math.atan2(offy, offx);
+        dirx /= dist;
+        diry /= dist;
+        this.graphics.rotation = Math.atan2(diry, dirx);
         this.graphics.x = this.n1.position[0];
         this.graphics.y = this.n1.position[1];
         this.graphics.scale.x = dist;
-        this.graphics.scale.y = nodeScale * 10.0;
-
-        this.time += Math.random() * dt;
+        this.graphics.scale.y = NODE_SCALE * 10.0;
+        if (this.arrows[1] != undefined) {
+            this.arrows[1].rotation = Math.atan2(diry, dirx) - Math.PI / 2.0;
+            this.arrows[1].x = this.n1.position[0] + dirx * (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
+            this.arrows[1].y = this.n1.position[1] + diry * (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
+            this.graphics.x = this.n1.position[0] + dirx * (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
+            this.graphics.y = this.n1.position[1] + diry * (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
+            this.graphics.scale.x -= (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
+        }
+        if (this.arrows[0] != undefined) {
+            this.arrows[0].rotation = Math.atan2(diry, dirx) + Math.PI / 2.0;
+            this.arrows[0].x = this.n2.position[0] - dirx * (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
+            this.arrows[0].y = this.n2.position[1] - diry * (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
+            this.graphics.scale.x -= (NODE_SCALE * 64.0 + ARROW_SCALE * 15.0);
+        }
 
         // Pump messages
+        this.time += Math.random() * dt;
         if (this.time > 1.0) {
             this.time = 0.0;
 
             if (this.queue.length > 0) {
                 let [node, msg] = this.queue.shift();
-                if (this.n1 == node) {
+                if (this.n1 == node && this.dirs[0]) {
                     this.n2.pushMessage(msg);
+                    if (this.uses[0] != undefined) {
+                        this.uses[0] -= 1;
+                        if (this.uses[0] <= 0) {
+                            this.destroy(this.n1);
+                        }
+                    }
                 }
-                else if (this.n2 == node) {
+                else if (this.n2 == node && this.dirs[1]) {
                     this.queue.push([msg]);
                     this.n1.pushMessage(msg);
+                    if (this.uses[1] != undefined) {
+                        this.uses[1] -= 1;
+                        if (this.uses[1] <= 0) {
+                            this.destroy(this.n1);
+                        }
+                    }
                 }
             }
         }    
+     
+        // Connection dead?
+        if (!this.dirs[0] && !this.dirs[1]) {
+            world.killConnection(this.id);
+        }
     }
 
-    destroy() {
-        let index = this.n1.connections.indexOf(this);
-        if (index > -1) {
-            this.n1.connections.splice(index, 1);
+    promote(n1, n2, uses) {
+        if (this.n1 == n1 && this.n2 == n2) {
+            this.dirs[0] = true;
+            if (uses == undefined || (this.uses[0] != undefined && this.uses[0] < uses)) {
+                this.uses[0] = uses;
+            }
+            this.checkGraphics();
         }
-        index = this.n2.connections.indexOf(this);
-        if (index > -1) {
-            this.n2.connections.splice(index, 1);
+        else if (this.n1 == n2 && this.n2 == n1) {
+            this.dirs[1] = true;
+            if (uses == undefined || (this.uses[1] != undefined && this.uses[1] < uses)) {
+                this.uses[1] = uses;
+            }
+            this.checkGraphics();
         }
-        connectionContainer.removeChild(this.graphics);
+    }
+
+    destroy(src) {
+        if (this.n1 == src && this.dirs[0]) {
+            this.dirs[0] = false;
+            this.uses[0] = 0;
+            let index = this.n1.connections.indexOf(this);
+            if (index > -1) {
+                this.n1.connections.splice(index, 1);
+            }
+        }
+        else if (this.n2 == src && this.dirs[1]) {
+            this.dirs[1] = false;
+            this.uses[1] = 0;
+            let index = this.n2.connections.indexOf(this);
+            if (index > -1) {
+                this.n2.connections.splice(index, 1);
+            }
+        }
+
+        this.checkGraphics();
     }
 
     send(node, msg) {
         this.queue.push([node, msg]);
+    }
+
+    isIngoing(node) {
+        if (this.n1 == node) {
+            return this.dirs[1];
+        }
+        else if (this.n2 == node) {
+            return this.dirs[0];
+        }
+    }
+
+    isOutgoing(node) {
+        if (this.n1 == node) {
+            return this.dirs[0];
+        }
+        else if (this.n2 == node) {
+            return this.dirs[1];
+        }
     }
 
     getOther(node) {
@@ -285,8 +403,8 @@ class GenericNode {
         this.id = id;
         this.sprite = new PIXI.Sprite(nodeTex);
         this.sprite.anchor.set(0.5);
-        this.sprite.scale.x = nodeScale;
-        this.sprite.scale.y = nodeScale;
+        this.sprite.scale.x = NODE_SCALE;
+        this.sprite.scale.y = NODE_SCALE;
         this.sprite.interactive = true;
         this.sprite.buttonMode = true;
         this.sprite.node = this;

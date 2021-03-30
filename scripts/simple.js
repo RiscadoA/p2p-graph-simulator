@@ -23,7 +23,7 @@ class SimpleNode extends GenericNode {
 		this.peers = [];
 
 		// Try to connect to network
-		let con = world.addConnection(this, world.getNode(target), true);
+		let con = world.addConnection(this, world.getNode(target), 2);
 		if (con != undefined) {
 			con.send(this, {
 				type: "requestConnection",
@@ -42,8 +42,8 @@ class SimpleNode extends GenericNode {
 
 		// Check connection timeouts
 		for (const [target, [time, con]] of this.requestedConnections.entries()) {
-			if (this.time - time > RingNode.CON_TIMEOUT) {
-				world.killConnection(con.id);
+			if (this.time - time > SimpleNode.CON_TIMEOUT) {
+				con.destroy(this);
 				this.requestedConnections.delete(target);
 				break;
 			}
@@ -75,13 +75,13 @@ class SimpleNode extends GenericNode {
 	}
 
 	process(msg) {
-		let con = world.getConnection(this, world.getNode(msg.src));
-		if (con == undefined) {
-			return;
-		}
-
 		switch (msg.type) {
 			case "requestConnection": {
+				let con = world.addConnection(this, world.getNode(msg.src));
+				if (con == undefined) {
+					return;
+				}
+
 				// Accept all connection requests
 				con.send(this, {
 					type: "acceptConnection",
@@ -99,7 +99,12 @@ class SimpleNode extends GenericNode {
 
 			case "acceptConnection": {
 				if (this.requestedConnections.get(msg.src) != undefined) {
-					con.promote();
+					let con = world.getConnection(this, world.getNode(msg.src));
+					if (con == undefined) {
+						return;
+					}
+
+					con.promote(this, world.getNode(msg.src), undefined);
 					this.peers.push(msg.src);
 					this.requestedConnections.delete(msg.src);
 				}
@@ -112,7 +117,7 @@ class SimpleNode extends GenericNode {
 						continue;
 					}
 
-					let con = world.addConnection(this, world.getNode(peer));
+					let con = world.addConnection(this, world.getNode(peer), 2);
 					if (con != undefined) {
 						con.send(this, {
 							type: "requestConnection",
