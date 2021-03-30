@@ -11,43 +11,23 @@
 */
 
 class SimpleNode extends GenericNode {
-	static CON_TIMEOUT = 10.0;
-
 	constructor(id, world, target) {
 		super(id);
 
-		this.time = 0.0;
-		this.cpsTime = 0.0;
-		this.nuTime = 0.0;
-		this.requestedConnections = new Map();
 		this.peers = [];
 
 		// Try to connect to network
-		let con = world.addConnection(this, world.getNode(target), 2);
+		let con = world.addConnection(this, world.getNode(target), 1);
 		if (con != undefined) {
 			con.send(this, {
 				type: "requestConnection",
 				src: this.id,
 			});
-			this.requestedConnections.set(target, [this.time, con]);
 		}
 	}
 
 	update(dt) {
 		super.update(dt);
-
-		this.time += dt;
-		this.cpsTime += dt;
-		this.nuTime += dt;
-
-		// Check connection timeouts
-		for (const [target, [time, con]] of this.requestedConnections.entries()) {
-			if (this.time - time > SimpleNode.CON_TIMEOUT) {
-				con.destroy(this);
-				this.requestedConnections.delete(target);
-				break;
-			}
-        }
 
 		// Check existing connections
 		let notify = false;
@@ -98,16 +78,13 @@ class SimpleNode extends GenericNode {
 			}
 
 			case "acceptConnection": {
-				if (this.requestedConnections.get(msg.src) != undefined) {
-					let con = world.getConnection(this, world.getNode(msg.src));
-					if (con == undefined) {
-						return;
-					}
-
-					con.promote(this, world.getNode(msg.src), undefined);
-					this.peers.push(msg.src);
-					this.requestedConnections.delete(msg.src);
+				let con = world.addConnection(this, world.getNode(msg.src));
+				if (con == undefined) {
+					return;
 				}
+
+				con.promote(this, world.getNode(msg.src), undefined);
+				this.peers.push(msg.src);
 				break;
 			}
 
@@ -117,13 +94,12 @@ class SimpleNode extends GenericNode {
 						continue;
 					}
 
-					let con = world.addConnection(this, world.getNode(peer), 2);
+					let con = world.addConnection(this, world.getNode(peer), 1);
 					if (con != undefined) {
 						con.send(this, {
 							type: "requestConnection",
 							src: this.id,
 						});
-						this.requestedConnections.set(peer, [this.time, con]);
 					}
 				}
 
