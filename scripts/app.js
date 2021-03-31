@@ -248,7 +248,7 @@ function butPointerUp() {
     }
     else {
         if (this.data.mode == "help") {
-            window.open('https://riscadoa.com/web-dev/ourchat-1/');
+            window.open('https://riscadoa.com/portfolio/p2p-graph-simulator/');
         }
         else if (inputMode == this.data.mode) {
             inputMode = "none";
